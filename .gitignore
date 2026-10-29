@@ -1,0 +1,22 @@
+
+# Build output
+/build/
+/cmake-build-*/
+
+# Compiled artifacts
+*.o
+*.a
+*.so
+*.out
+
+# Debugging and profiling artifacts
+core
+core.*
+*.prof
+*.nsys-rep
+*.ncu-rep
+*.sqlite
+
+# Editor and operating system files
+.vscode/
+.DS_Store
