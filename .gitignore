@@ -2,7 +2,7 @@
 # Build output
 /build/
 /cmake-build-*/
-
+/build*/
 # Compiled artifacts
 *.o
 *.a
@@ -20,3 +20,6 @@ core.*
 # Editor and operating system files
 .vscode/
 .DS_Store
+
+.cache/
+compile_commands.json
