@@ -1,66 +1,58 @@
+#include "tensormorph/cuda/runtime.hpp"
+#include "../include/tensormorph/cuda/error.hpp"
 
-#include "../include/tensormorph/cuda/runtime.hpp"
-#include <cstddef>
 #include <cuda_runtime.h>
+
 #include <stdexcept>
-#include <string>
-#include <cuda_runtime.h>
 
 namespace tensormorph::cuda {
-namespace {
-void check_cuda_error(cudaError_t error, const char *operation) {
-  if (error != cudaSuccess) {
-    throw std::runtime_error(std::string(operation) + ": " +
-                             cudaGetErrorString(error));
-  }
-}
-} // namespace
 
 int device_count() {
-  int count = 0;
-
-  check_cuda_error(cudaGetDeviceCount(&count), "cudaGetDeviceCount");
-
-  return count;
+    int count = 0;
+    TM_CUDA_CHECK(cudaGetDeviceCount(&count));
+    return count;
 }
 
-DeviceInfo device_info(int device_id) {
-  cudaDeviceProp properties{};
+DeviceInfo device_info(int device_index) {
+    if (device_index < 0 || device_index >= device_count()) {
+        throw std::out_of_range("Invalid CUDA device index");
+    }
 
-  check_cuda_error(cudaGetDeviceProperties(&properties, device_id),
-                   "cudaGetDeviceProperties");
+    cudaDeviceProp properties{};
+    TM_CUDA_CHECK(cudaGetDeviceProperties(&properties, device_index));
 
-  DeviceInfo info{};
-  info.id = device_id;
+    DeviceInfo info;
 
-  std::size_t i = 0;
-  for (; i < sizeof(info.name) - 1 && properties.name[i] != '\0'; ++i) {
-    info.name[i] = properties.name[i];
-  }
+    info.id = device_index;
+    info.name = properties.name;
 
-  info.name[i] = '\0';
+    info.compute_major = properties.major;
+    info.compute_minor = properties.minor;
 
-  info.compute_major = properties.major;
-  info.compute_minor = properties.minor;
+    info.multiprocessor_count = properties.multiProcessorCount;
+    info.warp_size = properties.warpSize;
 
-  info.multiprocessor_count = properties.multiProcessorCount;
-  info.warp_size = properties.warpSize;
+    info.total_global_memory = properties.totalGlobalMem;
+    info.shared_memory_per_block = properties.sharedMemPerBlock;
 
-  info.total_global_memory = properties.totalGlobalMem;
-  info.shared_memory_per_block = properties.sharedMemPerBlock;
-  info.registers_per_block = properties.regsPerBlock;
+    info.registers_per_block = properties.regsPerBlock;
+    info.async_engine_count = properties.asyncEngineCount;
+    info.concurrent_kernels = properties.concurrentKernels;
 
-  info.async_engine_count = properties.asyncEngineCount;
-  info.concurrent_kernels = properties.concurrentKernels;
-
-  return info;
+    return info;
 }
 
-void set_device(int device_id) {
-  check_cuda_error(cudaSetDevice(device_id), "cudaSetDevice");
+void set_device(int device_index) {
+    if (device_index < 0 || device_index >= device_count()) {
+        throw std::out_of_range("Invalid CUDA device index");
+    }
+
+    TM_CUDA_CHECK(cudaSetDevice(device_index));
 }
 
-void synchronize() {
-  check_cuda_error(cudaDeviceSynchronize(), "cudaDeviceSynchronize");
+void synchronize(int device_index) {
+    set_device(device_index);
+    TM_CUDA_CHECK(cudaDeviceSynchronize());
 }
-} // namespace tensormorph::cuda
+
+}

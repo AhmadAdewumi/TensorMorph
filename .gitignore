@@ -23,3 +23,7 @@ core.*
 
 .cache/
 compile_commands.json
+
+codebase_dump.txt
+.clangd
+tensormorph_snapshot.txt
