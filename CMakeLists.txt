@@ -18,7 +18,7 @@ option(TENSORMORPH_ENABLE_CUDA "Build CUDA backend" OFF)
 # Core library
 add_library(tensormorph
     src/tensor.cpp
-    src/operations.cpp
+    # src/operations.cpp
     src/cpu/elementwise.cpp
     src/cpu/reduction.cpp
     src/cpu/matmul.cpp
