@@ -58,7 +58,7 @@ if(TENSORMORPH_ENABLE_CUDA)
         src/cuda/runtime.cu
         src/cuda/stream.cu
         src/cuda/event.cu
-        src/cuda/elementwise.cu
+        src/cuda/element_wise.cu
         src/cuda/reduction.cu
         src/cuda/matmul.cu
         src/cuda/transpose.cu
