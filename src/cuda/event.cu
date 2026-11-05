@@ -11,7 +11,7 @@
 namespace tensormorph::cuda {
 
 Event::Event(int device_index) : device_index_(device_index) {
-  if (device_index == 0) {
+  if (device_index < 0) {
     throw std::invalid_argument("Negative CUDA device index");
   }
 
@@ -37,12 +37,14 @@ Event::Event(Event &&other) noexcept
 Event &Event::operator=(Event &&other) noexcept {
   if (this != &other) {
     if (handle_) {
-      cudaSetDevice(device_index_);
-      cudaEventDestroy(static_cast<cudaEvent_t>(handle_));
+      if (handle_) {
+        cudaSetDevice(device_index_);
+        cudaStreamDestroy(static_cast<cudaStream_t>(handle_));
+      }
     }
 
     handle_ = std::exchange(other.handle_, nullptr);
-    device_index_ = std::exchange(device_index_, 0);
+    device_index_ = std::exchange(other.device_index_, 0);
   }
 
   return *this;
@@ -76,8 +78,6 @@ float Event::elapsed_ms(const Event &end) const {
   return milliseconds;
 }
 
-void* Event::native_handle() const noexcept {
-    return handle_;
-}
+void *Event::native_handle() const noexcept { return handle_; }
 
 } // namespace tensormorph::cuda
