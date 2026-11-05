@@ -68,6 +68,10 @@ const void *DeviceBuffer::data() const noexcept { return pointer_; }
 
 std::size_t DeviceBuffer::size_bytes() const noexcept { return size_bytes_; }
 
+int DeviceBuffer::device_index() const noexcept {
+    return device_index_;
+}
+
 DeviceBuffer::operator bool() const noexcept { return pointer_ != nullptr; }
 
 void DeviceBuffer::reset() noexcept {
