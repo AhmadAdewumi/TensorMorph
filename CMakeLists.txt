@@ -18,7 +18,7 @@ option(TENSORMORPH_ENABLE_CUDA "Build CUDA backend" OFF)
 # Core library
 add_library(tensormorph
     src/tensor.cpp
-    # src/operations.cpp
+    src/operations.cpp
     src/cpu/elementwise.cpp
     src/cpu/reduction.cpp
     src/cpu/matmul.cpp
@@ -44,12 +44,18 @@ if(TENSORMORPH_ENABLE_CUDA)
 
     enable_language(CUDA)
 
-    set(CMAKE_CUDA_STANDARD 17)
+    set(CMAKE_CUDA_STANDARD 20)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
-    if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+    # Default architecture if none was supplied.
+    if(NOT CMAKE_CUDA_ARCHITECTURES)
         set(CMAKE_CUDA_ARCHITECTURES 75)
     endif()
+
+    # tensormorph was created before CUDA was enabled.
+    set_property(TARGET tensormorph
+        PROPERTY CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}"
+    )
 
     find_package(CUDAToolkit REQUIRED)
 
@@ -64,7 +70,6 @@ if(TENSORMORPH_ENABLE_CUDA)
         src/cuda/transpose.cu
     )
 
-    # Makes TENSORMORPH_HAS_CUDA visible to dependent targets
     target_compile_definitions(tensormorph
         PUBLIC TENSORMORPH_HAS_CUDA=1
     )
