@@ -159,7 +159,7 @@ Tensor Tensor::to(Device target) const {
     }
 
 #ifdef TENSORMORPH_HAS_CUDA
-    const auto &gpu = std::get<CUDAStorage>(storage_);
+    const auto &gpu = std::get<CudaStorage>(storage_);
 
     std::vector<float> values(numel_);
 
@@ -169,7 +169,7 @@ Tensor Tensor::to(Device target) const {
                                 gpu.buffer.device_index());
     }
 
-    return Tensor(shape_, CPUStorage{std::move(values)});
+    return Tensor(shape_, CpuStorage{std::move(values)});
 #else
     throw std::runtime_error("TensorMorph was built without CUDA support");
 #endif
@@ -248,7 +248,7 @@ Tensor cuda_tensor_from_data(std::vector<std::size_t> shape,
   }
 
   return Tensor(std::move(shape),
-                Tensor::Storage{Tensor::CUDAStorage{std::move(buffer)}});
+                Tensor::Storage{Tensor::CudaStorage{std::move(buffer)}});
 #endif
 }
 
