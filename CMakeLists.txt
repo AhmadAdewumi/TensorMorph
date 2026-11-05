@@ -120,3 +120,8 @@ add_executable(matmul_bench
 target_link_libraries(matmul_bench
     PRIVATE tensormorph
 )
+add_executable(cuda_elementwise_bench
+        benchmarks/cuda_elementwise_bench.cu
+    )
+
+target_link_libraries(cuda_elementwise_bench PRIVATE tensormorph)

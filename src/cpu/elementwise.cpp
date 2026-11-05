@@ -1,5 +1,7 @@
-#include "../include/tensormorph/tensor.hpp"
+
 #include "tensormorph/operations.hpp"
+#include "tensormorph/tensor.hpp"
+
 #include <algorithm>
 #include <cstddef>
 #include <ranges>
@@ -9,6 +11,13 @@
 namespace tensormorph {
 
 namespace {
+
+void require_cpu(const Tensor &tensor) {
+  if (!tensor.device().is_cpu()) {
+    throw std::invalid_argument("CPU operation received a CUDA tensor");
+  }
+}
+
 void require_same_shape(const Tensor &a, const Tensor &b, const char *message) {
   if (!std::ranges::equal(a.shape(), b.shape())) {
     throw std::invalid_argument(message);
@@ -20,11 +29,16 @@ void require_output_shape(const Tensor &input, const Tensor &output) {
     throw std::invalid_argument("Output shape must match input shape");
   }
 }
+
 } // namespace
 
 void add_into(const Tensor &a, const Tensor &b, Tensor &output) {
+  require_cpu(a);
+  require_cpu(b);
+  require_cpu(output);
+
   require_same_shape(a, b, "Addition requires identical input shapes");
-  require_output_shape(a, b);
+  require_output_shape(a, output);
 
   const auto a_data = a.data();
   const auto b_data = b.data();
@@ -36,6 +50,9 @@ void add_into(const Tensor &a, const Tensor &b, Tensor &output) {
 }
 
 Tensor add(const Tensor &a, const Tensor &b) {
+  require_cpu(a);
+  require_cpu(b);
+
   require_same_shape(a, b, "Addition requires identical input shapes");
 
   Tensor output(std::vector<std::size_t>(a.shape().begin(), a.shape().end()));
@@ -45,8 +62,12 @@ Tensor add(const Tensor &a, const Tensor &b) {
 }
 
 void multiply_into(const Tensor &a, const Tensor &b, Tensor &output) {
-  require_same_shape(a, b, "multiplication requires identical input shapes");
-  require_output_shape(a, b);
+  require_cpu(a);
+  require_cpu(b);
+  require_cpu(output);
+
+  require_same_shape(a, b, "Multiplication requires identical input shapes");
+  require_output_shape(a, output);
 
   const auto a_data = a.data();
   const auto b_data = b.data();
@@ -58,7 +79,10 @@ void multiply_into(const Tensor &a, const Tensor &b, Tensor &output) {
 }
 
 Tensor multiply(const Tensor &a, const Tensor &b) {
-  require_same_shape(a, b, "Addition requires identical input shapes");
+  require_cpu(a);
+  require_cpu(b);
+
+  require_same_shape(a, b, "Multiplication requires identical input shapes");
 
   Tensor output(std::vector<std::size_t>(a.shape().begin(), a.shape().end()));
 
@@ -67,17 +91,22 @@ Tensor multiply(const Tensor &a, const Tensor &b) {
 }
 
 void scale_into(const Tensor &input, float factor, Tensor &output) {
+  require_cpu(input);
+  require_cpu(output);
+
   require_output_shape(input, output);
 
   const auto src = input.data();
   auto dst = output.data();
 
-  for (std::size_t i{0}; i < src.size(); ++i) {
+  for (std::size_t i = 0; i < src.size(); ++i) {
     dst[i] = src[i] * factor;
   }
 }
 
 Tensor scale(const Tensor &input, float factor) {
+  require_cpu(input);
+
   Tensor output(
       std::vector<std::size_t>(input.shape().begin(), input.shape().end()));
 
@@ -86,19 +115,27 @@ Tensor scale(const Tensor &input, float factor) {
 }
 
 void relu_into(const Tensor &input, Tensor &output) {
+  require_cpu(input);
+  require_cpu(output);
+
+  require_output_shape(input, output);
+
   const auto src = input.data();
   auto dst = output.data();
 
-  for (std::size_t i{0}; i < src.size(); ++i) {
-    dst[i] = std::max(0.0f, src[i]);
+  for (std::size_t i = 0; i < src.size(); ++i) {
+    dst[i] = std::max(src[i], 0.0F);
   }
 }
 
 Tensor relu(const Tensor &input) {
+  require_cpu(input);
+
   Tensor output(
       std::vector<std::size_t>(input.shape().begin(), input.shape().end()));
 
   relu_into(input, output);
   return output;
 }
+
 } // namespace tensormorph
